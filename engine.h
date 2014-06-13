@@ -9,6 +9,6 @@
 #define ENGINE_H_
 
 int game_loop();
-
+void set_quit_game();
 
 #endif /* ENGINE_H_ */

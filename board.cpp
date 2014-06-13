@@ -10,11 +10,10 @@
 #include <string>
 
 #include "board.h"
+#include "sprite.h"
+#include "engine.h"
 
 using namespace std;
-
-//function prototypes
-int initialize_sprite_textures();
 
 
 //globals
@@ -22,70 +21,40 @@ SDL_Window *g_mainwin = NULL;
 SDL_Surface *g_window_surface = NULL;
 SDL_Renderer *g_renderer = NULL;
 
-/*
- * structure to handle the details for any individual sprite
- */
-struct sprite {
-    int key;
-    string image;
-    SDL_Texture *tex;
-    int width;
-    int height;
-    int xpos;
-    int ypos;
-    int xvel;
-    int yvel;
-    int frames_per_move;
-    int curr_frame;
-    int render;
+//function declarations
+int ship_shoot();
+int check_all_collisions();
+
+
+static Sprite sprites[] = {
+        Sprite(BACKGROUND, "images/space.png", 640, 640, 0, 0, 1),
+        Sprite(SHIP, "images/ship.png", 48, 48, ((WIN_WIDTH / 2) - 24), (WIN_HEIGHT - 48), 1),
+        Sprite(SHOT, "images/shot.png", 4, 8, 320, 460, 0),
+        Sprite(SHOT2, "images/shot.png", 4, 8, 320, 460, 0),
+        Sprite(SHOT3, "images/shot.png", 4, 8, 320, 460, 0),
+        Sprite(ALIEN_1, "images/alien.png", 64, 64, 160, 80, 1),
+        Sprite(ALIEN_2, "images/alien.png", 64, 64, 480, 80, 1),
+        Sprite(END_OF_ARRAY, "", 0, 0, 0, 0, 0)
 };
 
 
 /*
- * Details regarding the sprites in invaders. Individual sprite data will be
- * adjusted by externally available functions.
+ * load_sprite_textures loads all SDL_Texture members for sprites array based
+ * the path listed by the img_path member
+ *
+ * returns 0 on success, -1 on error
  */
-static struct sprite all_sprites[] = {
-        { BACKGROUND, "images/space.png", NULL, 640, 640, 0, 0, 0, 0, 40, 0, 1 },
-        { SHIP, "images/ship.png", NULL, 48, 48, ((WIN_WIDTH / 2) - 24), (WIN_HEIGHT - 48), 0, 0, 1, 0, 1 },
-        { SHOT, "images/shot.png", NULL, 4, 8, 320, 460, 0, -16, 1, 0, 0 },
-        { SHOT2, "images/shot.png", NULL, 4, 8, 320, 460, 0, -16, 1, 0, 0 },
-        { SHOT3, "images/shot.png", NULL, 4, 8, 320, 460, 0, -16, 1, 0, 0 },
-        { ALIEN_1, "images/alien.png", NULL, 64, 64, 160, 80, 0, 0, 1, 0, 1},
-        { ALIEN_2, "images/alien.png", NULL, 64, 64, 480, 80, 0, 0, 1, 0, 1},
-        { END_OF_ARRAY, "", NULL, 0, 0, 0, 0, 0, 0, 0 },
-};
-
-
-
-/*
- * initialize_sprite_textures loads an appropriate *SDL_Texure for each sprite
- * int the all_sprites array
- */
-int initialize_sprite_textures() {
-    int i;
-    SDL_Surface *tempsurface;
-    int total_textures_loaded = 0;
-
-    /*
-     * iterate through the array loading images to surfaces, then converting
-     * surfaces to textures
-     */
-    while (all_sprites[i].key != -1) {
-        if((tempsurface = IMG_Load(all_sprites[i].image.c_str())) == NULL) {
-            fprintf(stderr, "Invaders: Unable to load image %s\n%s\n",
-                    all_sprites[i].image.c_str(), IMG_GetError());
+int load_sprite_textures() {
+    int i = 0;
+    printf("about to load textures.\n");
+    while(sprites[i].get_key() != END_OF_ARRAY) {
+        printf("calling load_texture() for %s.\n", sprites[i].get_img_path().c_str());
+        if (sprites[i].load_texture() == -1) {
             return -1;
         }
-        if((all_sprites[i].tex = SDL_CreateTextureFromSurface(g_renderer, tempsurface)) == NULL) {
-            fprintf(stderr, "Invaders: %s\n", SDL_GetError());
-            return -1;
-        }
-        printf("loaded a texture for %s\n", all_sprites[i].image.c_str());
         i++;
     }
-    SDL_FreeSurface(tempsurface);
-    return total_textures_loaded;
+    return 0;
 }
 
 
@@ -116,9 +85,10 @@ int initialize_board() {
         SDL_SetRenderDrawColor( g_renderer, 0x00, 0x00, 0x00, 0x00 );
     }
 
-    if (initialize_sprite_textures() == -1) {
+    if (load_sprite_textures() == -1) {
         return -1;
     }
+
     return 0;
 }
 
@@ -128,10 +98,7 @@ int initialize_board() {
  * de-allocate memory
  */
 int cleanup() {
-    int i = 0;
-    while (all_sprites[i].key != END_OF_ARRAY) {
-        SDL_DestroyTexture(all_sprites[i].tex);
-    }
+    //todo you probably need to kill all the objects here.
     SDL_DestroyRenderer( g_renderer );
     SDL_DestroyWindow( g_mainwin );
     IMG_Quit();
@@ -140,20 +107,21 @@ int cleanup() {
 }
 
 
+
 /*
- * render_all steps through the array and renders each texture to the window.
+ * render_all!!!
  */
 int render_all() {
     int i = 0;
     SDL_RenderClear(g_renderer);
     SDL_Rect dest_rect;
-    while ( all_sprites[i].key != END_OF_ARRAY) {
-        if (all_sprites[i].render == 1) {
-            dest_rect.x = all_sprites[i].xpos;
-            dest_rect.y = all_sprites[i].ypos;
-            dest_rect.w = all_sprites[i].width;
-            dest_rect.h = all_sprites[i].height;
-            SDL_RenderCopy( g_renderer, all_sprites[i].tex, NULL, &dest_rect);
+    while ( sprites[i].get_sprite_key() != END_OF_ARRAY) {
+        if (sprites[i].is_enabled() == 1) {
+            dest_rect.x = sprites[i].get_sprite_x();
+            dest_rect.y = sprites[i].get_sprite_y();
+            dest_rect.w = sprites[i].get_sprite_width();
+            dest_rect.h = sprites[i].get_sprite_height();
+            SDL_RenderCopy( g_renderer, sprites[i].get_sprite_texture(), NULL, &dest_rect);
         }
         i++;
     }
@@ -162,64 +130,7 @@ int render_all() {
 }
 
 
-/*
- * get_sprite_x is a simple getter function.
- *
- * returns the xpos of the passed sprite.
- */
-int get_sprite_x(int sprite_index) {
-    return all_sprites[sprite_index].xpos;
-}
 
-
-/*
- * get_sprite_y is a simple getter function.
- *
- * returns the ypos of the passed sprite.
- */
-int get_sprite_y(int sprite_index) {
-    return all_sprites[sprite_index].ypos;
-}
-
-
-/*
- * get_sprite_width is a simple getter function.
- *
- * returns the width of the passed sprite
- */
-int get_sprite_width(int sprite_index) {
-    return all_sprites[sprite_index].width;
-}
-
-
-/*
- * get_sprite_height is a simple getter function.
- *
- * returns the height of the passed sprite
- */
-int get_sprite_height(int sprite_index) {
-    return all_sprites[sprite_index].height;
-}
-
-
-/*
- * enable_sprite sets the value of "render" to 1, causing the sprite to become
- * rendered on the next frame, until disable_sprite is called.
- *
- */
-void enable_sprite(int sprite_index) {
-    all_sprites[sprite_index].render = 1;
-}
-
-
-/*
- * enable_sprite sets the value of "render" to 0, causing the sprite to no
- * longer be rendered.
- *
- */
-void disable_sprite(int sprite_index) {
-    all_sprites[sprite_index].render = 0;
-}
 
 
 /*
@@ -229,8 +140,8 @@ void disable_sprite(int sprite_index) {
  */
 int move_all_sprites() {
     int i = 0;
-    while(all_sprites[i].key != END_OF_ARRAY) {
-        move_sprite(i, all_sprites[i].xvel, all_sprites[i].yvel);
+    while(sprites[i].get_sprite_key() != END_OF_ARRAY) {
+        sprites[i].move_sprite(sprites[i].get_sprite_xvel(), sprites[i].get_sprite_yvel());
         i++;
     }
     return 0;
@@ -238,82 +149,164 @@ int move_all_sprites() {
 
 
 /*
- * move_sprite takes the sprite indicated by sprite index, and moves its x and
- * y cooridantes in the all_sprites array by the numbers indicated by x_delta
- * and y_delta.
- *
- * returns 0 on success, -1 if we hit a wall.
+ * get_board_renderer is a getter function to allow other files access to the
+ * renderer.
  */
-int move_sprite(int sprite_index, int x_delta, int y_delta) {
-    int newx, newy;
-    newx = x_delta + all_sprites[sprite_index].xpos;
-    newy = y_delta + all_sprites[sprite_index].ypos;
-    int rval = 0;
+SDL_Renderer *get_board_renderer() {
+    return g_renderer;
+}
 
-    //check the bounds of the gameplay walls and bring back inside if needed
-    if (newx < 0) {
-        newx = 0;
-        rval = -1;
-    } else if (newx > WIN_WIDTH) {
-        newx = WIN_WIDTH;
-        rval = -1;
+
+
+/*
+ * update_sprites updates the position, velocity, and render value of the
+ * all_sprites array in board.c according to input values and game logic.
+ *
+ * returns 0 on success, -1 on error
+ */
+int update_sprites(){
+    SDL_Event event;
+
+    while(SDL_PollEvent(&event) != 0) {
+        //check for "x'ing out" of the window
+        if(event.type == SDL_QUIT) {
+            set_quit_game();
+        }
+        //check for key presses
+        if(event.type == SDL_KEYDOWN) {
+            switch(event.key.keysym.sym) {
+            case SDLK_LEFT:
+                sprites[SHIP].set_sprite_xvel(-14);
+                break;
+            case SDLK_RIGHT:
+                sprites[SHIP].set_sprite_xvel(14);
+                break;
+            case SDLK_UP:
+                ship_shoot();
+                break;
+            }
+        }
+
+        if (event.type == SDL_KEYUP) {
+            switch(event.key.keysym.sym) {
+            case SDLK_LEFT:
+                if (sprites[SHIP].get_sprite_xvel() == -14) {
+                    sprites[SHIP].set_sprite_xvel(0);
+                }
+                break;
+            case SDLK_RIGHT:
+                if (sprites[SHIP].get_sprite_xvel() == 14) {
+                    sprites[SHIP].set_sprite_xvel(0);
+                }
+                break;
+            }
+        }
     }
-
-    if (newy < -8) {
-        newy = -8;
-        rval = -1;
-    } else if (newy > WIN_HEIGHT) {
-        newy = WIN_HEIGHT;
-        rval = -1;
-    }
-
-    //set the x and y in array
-    all_sprites[sprite_index].xpos = newx;
-    all_sprites[sprite_index].ypos = newy;
-    return rval;
-}
-
-
-/*
- * set_sprite_x sets the x position of the passed sprite to the passed new x
- * position. If the x position is outside the bounds of the window, x is set to
- * the closest bounding edge.
- *
- * returns the new x position.
- */
-int set_sprite_x(int sprite_index, int newx) {
-    all_sprites[sprite_index].xpos = newx;
-    return newx;
-}
-
-
-
-/*
- * set_sprite_y sets the y position of the passed sprite to the passed new y
- * position. If the y position is outside the bounds of the window, y is set to
- * the closest bounding edge.
- *
- * returns the new y position.
- */
-int set_sprite_y(int sprite_index, int newy) {
-    all_sprites[sprite_index].ypos = newy;
-    return newy;
-}
-
-
-/*
- * set_sprite_pos is a convenience wrapper around set_sprite_x and set_sprite_y
- *
- * returns 0
- */
-int set_sprite_pos(int sprite_index, int newx, int newy) {
-    set_sprite_x(sprite_index, newx);
-    set_sprite_y(sprite_index, newy);
+    move_all_sprites();
+    check_all_collisions();
     return 0;
 }
 
 
-int is_enabled(int sprite_index) {
-    return all_sprites[sprite_index].render;
+/*
+ * check_collision checks the two passed sprites for x or y collisions.
+ *
+ * returns 0 if no collision is detected, 1 if there's a collision
+ */
+int check_collision(int sprite_1, int sprite_2) {
+    //get edge coordinates for both sprites
+    int s1left = sprites[sprite_1].get_sprite_x();
+    int s2left = sprites[sprite_2].get_sprite_x();
+    int s1top = sprites[sprite_1].get_sprite_y();
+    int s2top = sprites[sprite_2].get_sprite_y();
+    int s1right = sprites[sprite_1].get_sprite_x() + sprites[sprite_1].get_sprite_width();
+    int s2right = sprites[sprite_2].get_sprite_x() + sprites[sprite_2].get_sprite_width();
+    int s1bottom = sprites[sprite_1].get_sprite_y() + sprites[sprite_1].get_sprite_height();
+    int s2bottom = sprites[sprite_2].get_sprite_y() + sprites[sprite_2].get_sprite_height();
+
+    //check edges. Any edges are too far to meet, there's no collision
+    if (s1right < s2left) {
+        return 0;
+    } else if (s1left > s2right) {
+        return 0;
+    } else if (s1bottom < s2top) {
+        return 0;
+    } else if (s1top > s2bottom) {
+        return 0;
+    }
+
+    return 1;
+}
+
+
+
+/*
+ * check_all_collisions checks the ship shots against the alien sprites to see
+ * if any collide. If they do, aliens are killed (disabled).
+ */
+int check_all_collisions() {
+    if (sprites[SHOT].is_enabled() || sprites[SHOT2].is_enabled() || sprites[SHOT3].is_enabled()) {
+        if (sprites[ALIEN_1].is_enabled()) {
+            if (check_collision(SHOT, ALIEN_1) ||
+                    check_collision(SHOT2, ALIEN_1) ||
+                    check_collision(SHOT3, ALIEN_1)) {
+                sprites[SHOT].disable_sprite();
+                sprites[ALIEN_1].disable_sprite();
+            }
+        }
+        if(sprites[ALIEN_2].is_enabled()) {
+            if (check_collision(SHOT, ALIEN_2) ||
+                    check_collision(SHOT2, ALIEN_2) ||
+                    check_collision(SHOT3, ALIEN_2)) {
+                sprites[SHOT].disable_sprite();
+                sprites[ALIEN_2].disable_sprite();
+            }
+        }
+    }
+
+    //check if any of the shots have gone off the screen. If they have, we can
+    //use them again by disabling the sprite.
+    for (int i = SHOT; i <= SHOT3; i++) {
+        if ((sprites[i].get_sprite_y() == -8) && (sprites[i].is_enabled())) {
+            sprites[i].disable_sprite();
+        }
+    }
+    return 0;
+}
+
+
+
+/*
+ * ship_shoot is a function that handles the ship's firing command. Enables the
+ * sprite in the all_sprites function in board.cpp, and places it at the
+ * correct location.
+ *
+ * returns 0 on success, -1 if no shot was available
+ */
+int ship_shoot(){
+    int shot_index = -1;
+    //find shot that is not currently on screen
+    for (int i = SHOT; i <= SHOT3; i++) {
+        if (!sprites[i].is_enabled()) {
+            shot_index = i;
+        }
+    }
+    printf("got shot index of %i\n", shot_index);
+    if (shot_index == -1) {
+        return -1;
+    }
+
+
+    //get x position for shot (x position of ship, plus 1/2 width (midship))
+    int shot_x =  (sprites[SHIP].get_sprite_x() + (sprites[SHIP].get_sprite_width() / 2)) - 2;
+
+    //get y the position that the shot should start at (y position of ship plus
+    //shot image height)
+    int shot_y = WIN_HEIGHT - ((WIN_HEIGHT - sprites[SHIP].get_sprite_y())) - 8;
+
+    sprites[shot_index].set_sprite_pos(shot_x, shot_y);
+    sprites[shot_index].set_sprite_yvel(-20);
+    sprites[shot_index].enable_sprite();
+    return 0;
 }
 
