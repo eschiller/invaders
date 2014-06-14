@@ -15,7 +15,7 @@ using namespace std;
  *
  * Velocities and current frame are assumed to be 0. Frames per move is 1.
  */
-Sprite::Sprite(int key, string img_path, int width, int height, int xpos, int ypos, int render) {
+Sprite::Sprite(string key, string img_path, int width, int height, int xpos, int ypos, int render) {
     this->key = key;
     this->img_path = img_path;
     this->tex = NULL;
@@ -125,7 +125,7 @@ void Sprite::disable_sprite() {
  * get_key is a simple getter function that returns the value of the
  * sprite object's key member.
  */
-int Sprite::get_sprite_key() {
+string Sprite::get_sprite_key() {
     return this->key;
 }
 
@@ -236,13 +236,6 @@ string Sprite::get_img_path(){
     return this->img_path;
 }
 
-
-/*
- * get_key is a simple getter function for the key member of a Sprite.
- */
-int Sprite::get_key(){
-    return this->key;
-}
 
 
 /*

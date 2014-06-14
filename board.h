@@ -8,17 +8,10 @@
 #ifndef BOARD_H_
 #define BOARD_H_
 
-#define END_OF_ARRAY -1
-#define BACKGROUND 0
-#define SHIP 1
-#define SHOT 2
-#define SHOT2 3
-#define SHOT3 4
-#define ALIEN_1 5
-#define ALIEN_2 6
-
 #define WIN_WIDTH 640
 #define WIN_HEIGHT 640
+
+#define SHIP_SPEED 14
 
 int initialize_board();
 int render_all();
