@@ -2,6 +2,7 @@
 #define SPRITE_H_
 
 #include <string>
+#include "animation.h"
 
 using namespace std;
 
@@ -10,6 +11,7 @@ private:
     string key;
     string img_path;
     SDL_Texture *tex;
+    Animation ani;
     int width;
     int height;
     int xpos;
@@ -21,7 +23,9 @@ private:
     int render;
 
 public:
+    Sprite();
     Sprite(string key, string image, int width, int height, int xpos, int ypos, int render);
+    Sprite(string key, string image, int width, int height, int xpos, int ypos, int render, Animation ani);
     ~Sprite();
     int load_texture();
     int move_sprite(int x_delta, int y_delta);
@@ -43,6 +47,8 @@ public:
     int set_sprite_pos(int newx, int newy);
     int is_enabled();
     int change_vel(int x_delta, int y_delta);
+    int update_ani();
+    SDL_Rect get_src_rect();
 };
 
 #endif

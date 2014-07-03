@@ -8,10 +8,13 @@
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string>
+#include <iostream>
+#include <vector>
 
 #include "board.h"
 #include "sprite.h"
 #include "engine.h"
+#include "animation.h"
 
 using namespace std;
 
@@ -25,18 +28,58 @@ SDL_Renderer *g_renderer = NULL;
 int ship_shoot();
 int check_all_collisions();
 
+//data structure delcarations
+static Sprite sprites[20];
+static Animation animations[20];
 
-static Sprite sprites[] = {
-        Sprite("background", "images/space.png", 640, 640, 0, 0, 1),
-        Sprite("ship", "images/ship.png", 48, 48, ((WIN_WIDTH / 2) - 24), (WIN_HEIGHT - 48), 1),
-        Sprite("shot_1", "images/shot.png", 4, 8, 320, 460, 0),
-        Sprite("shot_2", "images/shot.png", 4, 8, 320, 460, 0),
-        Sprite("shot_3", "images/shot.png", 4, 8, 320, 460, 0),
-        Sprite("alien_1", "images/alien.png", 64, 64, 160, 80, 1),
-        Sprite("alien_2", "images/alien.png", 64, 64, 480, 80, 1),
-        Sprite("end_of_array", "", 0, 0, 0, 0, 0)
-};
+/*
+ * initialize_sprites initializes all used sprites in the sprites array. This
+ * sets the starting configuration for all images on the screen.
+ *
+ * It's worth noting that when rendering, the sprites are layered on top of
+ * one another, starting with index 0, then iterating through the final
+ * active sprite. This means a sprite with lower index will be overlapped by a
+ * sprite with higher index.
+ *
+ * The final sprite in the array must have an index of "end_of_array", marking
+ * it as the terminal sprite. This is used to prevent hitting uninitialized
+ * sprites when iterating through the array.
+ *
+ * returns 0 on success
+ */
+int initialize_sprites() {
+    sprites[0] = Sprite("background", "images/space.png", WIN_WIDTH, WIN_HEIGHT, 0, 0, 1);
+    sprites[1] = Sprite("ship", "images/ship_stop.png", 40, 40, ((WIN_WIDTH / 2) - 20), (WIN_HEIGHT - 50), 1, animations[0]);
+    sprites[2] = Sprite("shot_1", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[3] = Sprite("shot_2", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[4] = Sprite("shot_3", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[5] = Sprite("shot_4", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[6] = Sprite("shot_5", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[7] = Sprite("shot_6", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[8] = Sprite("shot_7", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[9] = Sprite("shot_8", "images/shot.png", 4, 8, 320, 460, 0);
+    sprites[10] = Sprite("alien_1", "images/alien.png", 64, 64, 68, 80, 1);
+    sprites[11] = Sprite("alien_2", "images/alien.png", 64, 64, 268, 80, 1);
+    sprites[12] = Sprite("alien_3", "images/alien.png", 64, 64, 468, 80, 1);
+    sprites[13] = Sprite("alien_4", "images/alien.png", 64, 64, 668, 80, 1);
+    sprites[14] = Sprite("end_of_array", "", 0, 0, 0, 0, 0);
+    return 0;
+}
 
+
+//todo find a way to get rid of this
+int aniarr[][2] = {{2, 0}, {2, 1}, {2, 2}, {2, 3}, {END_OF_ANI, 0}};
+
+/*
+ * initialize_sprites initializes all used animations in the animations array.
+ * This sets the starting configuration for all animations used by sprites.
+ *
+ * returns 0 on success
+ */
+int initialize_animations(){
+    animations[0] = Animation(aniarr, 0);
+    return 0;
+}
 
 /*
  * load_sprite_textures loads all SDL_Texture members for sprites array based
@@ -46,9 +89,7 @@ static Sprite sprites[] = {
  */
 int load_sprite_textures() {
     int i = 0;
-    printf("about to load textures.\n");
     while(sprites[i].get_sprite_key().compare("end_of_array") != 0) {
-        printf("calling load_texture() for %s.\n", sprites[i].get_img_path().c_str());
         if (sprites[i].load_texture() == -1) {
             return -1;
         }
@@ -73,6 +114,10 @@ int get_sprite_index(string sprite_key) {
         }
         i++;
     }
+
+    if (sprite_key.compare("end_of_array") == 0) {
+        return i;
+    }
     return -1;
 }
 
@@ -84,12 +129,14 @@ int get_sprite_index(string sprite_key) {
  * returns 0 if successful, -1 on error
  */
 int initialize_board() {
+    initialize_animations();
+    initialize_sprites();
     //initialize SDL and the main window
     if (SDL_Init( SDL_INIT_VIDEO ) < 0) {
         printf("Invaders: SDL_Init %s\n", SDL_GetError());
         return -1;
     } else {
-        if ((g_mainwin = SDL_CreateWindow( "Invaders", SDL_WINDOWPOS_UNDEFINED,
+        if ((g_mainwin = SDL_CreateWindow( "Invaders: SDL_CreateWindow", SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH, WIN_HEIGHT, SDL_WINDOW_SHOWN)) == NULL) {
             printf("Invaders: SDL_CreateWindow: %s\n", SDL_GetError());
         }
@@ -134,20 +181,23 @@ int render_all() {
     int i = 0;
     SDL_RenderClear(g_renderer);
     SDL_Rect dest_rect;
+    SDL_Rect src_rect;
     while ( sprites[i].get_sprite_key().compare("end_of_array") ) {
         if (sprites[i].is_enabled() == 1) {
             dest_rect.x = sprites[i].get_sprite_x();
             dest_rect.y = sprites[i].get_sprite_y();
             dest_rect.w = sprites[i].get_sprite_width();
             dest_rect.h = sprites[i].get_sprite_height();
-            SDL_RenderCopy( g_renderer, sprites[i].get_sprite_texture(), NULL, &dest_rect);
+
+            src_rect = sprites[i].get_src_rect();
+
+            SDL_RenderCopy( g_renderer, sprites[i].get_sprite_texture(), &src_rect, &dest_rect);
         }
         i++;
     }
     SDL_RenderPresent( g_renderer );
     return 0;
 }
-
 
 
 
@@ -263,32 +313,28 @@ int check_collision(int sprite_1, int sprite_2) {
  * if any collide. If they do, aliens are killed (disabled).
  */
 int check_all_collisions() {
-    if (sprites[get_sprite_index("shot")].is_enabled() ||
-            sprites[get_sprite_index("shot_2")].is_enabled() ||
-            sprites[get_sprite_index("shot_3")].is_enabled()) {
-        if (sprites[get_sprite_index("alien_1")].is_enabled()) {
-            if (check_collision(get_sprite_index("shot_1"), get_sprite_index("alien_1")) ||
-                    check_collision(get_sprite_index("shot_2"), get_sprite_index("alien_1")) ||
-                    check_collision(get_sprite_index("shot_3"), get_sprite_index("alient_1"))) {
-                //todo this could disable the wrong shot....
-                sprites[get_sprite_index("shot")].disable_sprite();
-                sprites[get_sprite_index("alien_1")].disable_sprite();
-            }
-        }
-        if(sprites[get_sprite_index("alien_2")].is_enabled()) {
-            if (check_collision(get_sprite_index("shot"), get_sprite_index("alien_2")) ||
-                    check_collision(get_sprite_index("shot_2"), get_sprite_index("alien_2")) ||
-                    check_collision(get_sprite_index("shot_3"), get_sprite_index("alien_2"))) {
-                sprites[get_sprite_index("shot")].disable_sprite();
-                sprites[get_sprite_index("alien_2")].disable_sprite();
+    //nested loop to search for enabled alien sprites, then enabled shot sprites
+    //if it finds both, it will check for a collision between the two.
+    for (int i = 0; i < get_sprite_index("end_of_array"); i++) {
+        if ((sprites[i].get_sprite_key().find("alien") != string::npos) &&
+                sprites[i].is_enabled()) {
+            for (int j = 0; j < get_sprite_index("end_of_array"); j++) {
+                if ((sprites[j].get_sprite_key().find("shot") != string::npos) &&
+                                sprites[j].is_enabled()) {
+                    if (check_collision(i, j)) {
+                        sprites[i].disable_sprite();
+                        sprites[j].disable_sprite();
+                    }
+                }
             }
         }
     }
 
     //check if any of the shots have gone off the screen. If they have, we can
     //use them again by disabling the sprite.
-    for (int i = get_sprite_index("shot"); i <= get_sprite_index("shot_3"); i++) {
-        if ((sprites[i].get_sprite_y() == -8) && (sprites[i].is_enabled())) {
+    for (int i = 0; i < get_sprite_index("end_of_array"); i++) {
+        if ((sprites[i].get_sprite_y() == -8) && (sprites[i].is_enabled()) &&
+                (sprites[i].get_sprite_key().find("shot") != string::npos)) {
             sprites[i].disable_sprite();
         }
     }
@@ -307,12 +353,12 @@ int check_all_collisions() {
 int ship_shoot(){
     int shot_index = -1;
     //find shot that is not currently on screen
-    for (int i = get_sprite_index("shot"); i <= get_sprite_index("shot_3"); i++) {
-        if (!sprites[i].is_enabled()) {
+    for (int i = 0; i < get_sprite_index("end_of_array"); i++) {
+        if (!sprites[i].is_enabled() &&
+                (sprites[i].get_sprite_key().find("shot") != string::npos)) {
             shot_index = i;
         }
     }
-    printf("got shot index of %i\n", shot_index);
     if (shot_index == -1) {
         return -1;
     }
@@ -331,7 +377,3 @@ int ship_shoot(){
     sprites[shot_index].enable_sprite();
     return 0;
 }
-
-
-
-

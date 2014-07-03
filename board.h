@@ -8,8 +8,8 @@
 #ifndef BOARD_H_
 #define BOARD_H_
 
-#define WIN_WIDTH 640
-#define WIN_HEIGHT 640
+#define WIN_WIDTH 800
+#define WIN_HEIGHT 600
 
 #define SHIP_SPEED 14
 
