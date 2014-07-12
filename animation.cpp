@@ -32,7 +32,7 @@ Animation::Animation() {
  */
 Animation::Animation(int ani_script[][2], int loop_frame) {
     int aFrame = 0;
-    while(ani_script[aFrame][DURATION] != END_OF_ANI) {
+    while(ani_script[aFrame][DURATION] != -1) {
         this->ani_script[aFrame][DURATION] = ani_script[aFrame][DURATION];
         this->ani_script[aFrame][CLIP] = ani_script[aFrame][CLIP];
         aFrame++;

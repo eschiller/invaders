@@ -1,0 +1,152 @@
+[
+  {
+    "key" : "background",
+    "img_path" : "images/space.png",
+    "width" : 800,
+    "height" : 600,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 1
+  },
+
+  {
+    "key" : "ship",
+    "img_path" : "images/ship_stop.png",
+    "width" : 40,
+    "height" : 40,
+    "xpos" : 400,
+    "ypos" : 550,
+    "render" : 1,
+    "animation" : 0
+  },
+
+  {
+    "key" : "shot_1",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_1",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_2",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_3",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_4",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_5",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_6",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_7",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "shot_8",
+    "img_path" : "images/shot.png",
+    "width" : 4,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "alien_1",
+    "img_path" : "images/alien.png",
+    "width" : 64,
+    "height" : 64,
+    "xpos" : 68,
+    "ypos" : 80,
+    "render" : 1
+  },
+
+  {
+    "key" : "alien_2",
+    "img_path" : "images/alien.png",
+    "width" : 64,
+    "height" : 64,
+    "xpos" : 268,
+    "ypos" : 80,
+    "render" : 1
+  },
+
+  {
+    "key" : "alien_3",
+    "img_path" : "images/alien.png",
+    "width" : 64,
+    "height" : 64,
+    "xpos" : 468,
+    "ypos" : 80,
+    "render" : 1
+  },
+
+  {
+    "key" : "alien_4",
+    "img_path" : "images/alien.png",
+    "width" : 64,
+    "height" : 64,
+    "xpos" : 668,
+    "ypos" : 80,
+    "render" : 1
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "ani_script" : [
+       { "duration" : 2, "clip" : 0 },
+       { "duration" : 2, "clip" : 1 },
+       { "duration" : 2, "clip" : 2 },
+       { "duration" : 2, "clip" : 3 },
+       { "duration" : -1, "clip" : 3 }
+    ],
+    "loop_frame" : 0
+  }
+]

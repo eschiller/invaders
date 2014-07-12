@@ -358,3 +358,15 @@ SDL_Rect Sprite::get_src_rect() {
     return_rect.h = this->get_sprite_height();
     return return_rect;
 }
+
+
+/*
+ * print_sprite() simply prints some details about the sprite to stdout. This
+ * is really just provided for diagnositic purposes.
+ */
+void Sprite::print_sprite(){
+	printf("-- Sprite\n");
+	printf("key: %s\n", this->key.c_str());
+	printf("img_path: %s\n", this->img_path.c_str());
+	printf("--\n\n");
+}

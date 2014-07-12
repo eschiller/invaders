@@ -11,8 +11,8 @@ CC = g++
 CFLAGS = -Wall -c -g
 LFLAGS = -Wall -g
 
-invaders : invaders.o timer.o board.o engine.o sprite.o animation.o
-	$(CC) $(LFLAGS) invaders.o board.o timer.o engine.o sprite.o animation.o -o invaders -lSDL2 -lSDL2_image
+invaders : invaders.o timer.o board.o engine.o sprite.o animation.o parsejson.o
+	$(CC) $(LFLAGS) invaders.o board.o timer.o engine.o sprite.o animation.o parsejson.o -o invaders -lSDL2 -lSDL2_image -ljansson
 
 invaders.o : invaders.cpp invaders.h board.h engine.h
 	$(CC) $(CFLAGS) invaders.cpp
@@ -20,7 +20,7 @@ invaders.o : invaders.cpp invaders.h board.h engine.h
 timer.o : timer.cpp timer.h
 	$(CC) $(CFLAGS) timer.cpp
 
-board.o : board.cpp board.h sprite.h animation.h
+board.o : board.cpp board.h sprite.h animation.h parsejson.h
 	$(CC) $(CFLAGS) board.cpp
 
 engine.o : engine.cpp engine.h timer.h board.h
@@ -31,6 +31,9 @@ sprite.o : sprite.cpp sprite.h board.h animation.h
 
 animation.o : animation.cpp animation.h
 	$(CC) $(CFLAGS) animation.cpp
+
+parsejson.o : parsejson.cpp parsejson.h sprite.h animation.h
+	$(CC) $(CFLAGS) parsejson.cpp
 
 clean: 
 	rm -rf *.o invaders 

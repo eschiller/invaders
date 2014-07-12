@@ -12,9 +12,6 @@
 int quit_game = 0;
 
 
-
-
-
 /*
  * game_loop is the main game loop! It first calls update_sprites to make any
  * adjustments according to logic, then it waits until the next frame should be
@@ -30,6 +27,7 @@ int game_loop(){
             wait_for_frame();
         }
         render_all();
+        set_time();
     }
     return 0;
 }

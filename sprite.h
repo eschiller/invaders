@@ -49,6 +49,7 @@ public:
     int change_vel(int x_delta, int y_delta);
     int update_ani();
     SDL_Rect get_src_rect();
+    void print_sprite();
 };
 
 #endif

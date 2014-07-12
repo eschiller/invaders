@@ -12,6 +12,8 @@
 #define WIN_HEIGHT 600
 
 #define SHIP_SPEED 14
+#define SPRITE_FILE "jsondata/sprites.json"
+#define ANI_FILE "jsondata/animations.json"
 
 int initialize_board();
 int render_all();

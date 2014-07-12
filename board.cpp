@@ -15,8 +15,12 @@
 #include "sprite.h"
 #include "engine.h"
 #include "animation.h"
+#include "parsejson.h"
 
 using namespace std;
+
+char sprite_file[] = SPRITE_FILE;
+char ani_file[] = ANI_FILE;
 
 
 //globals
@@ -28,7 +32,7 @@ SDL_Renderer *g_renderer = NULL;
 int ship_shoot();
 int check_all_collisions();
 
-//data structure delcarations
+//data structure declarations
 static vector<Sprite> sprites;
 static vector<Animation> animations;
 
@@ -44,26 +48,13 @@ static vector<Animation> animations;
  * returns 0 on success
  */
 int initialize_sprites() {
-    sprites.push_back(Sprite("background", "images/space.png", WIN_WIDTH, WIN_HEIGHT, 0, 0, 1));
-    sprites.push_back(Sprite("ship", "images/ship_stop.png", 40, 40, ((WIN_WIDTH / 2) - 20), (WIN_HEIGHT - 50), 1, animations[0]));
-    sprites.push_back(Sprite("shot_1", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("shot_2", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("shot_3", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("shot_4", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("shot_5", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("shot_6", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("shot_7", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("shot_8", "images/shot.png", 4, 8, 320, 460, 0));
-    sprites.push_back(Sprite("alien_1", "images/alien.png", 64, 64, 68, 80, 1));
-    sprites.push_back(Sprite("alien_2", "images/alien.png", 64, 64, 268, 80, 1));
-    sprites.push_back(Sprite("alien_3", "images/alien.png", 64, 64, 468, 80, 1));
-    sprites.push_back(Sprite("alien_4", "images/alien.png", 64, 64, 668, 80, 1));
-    return 0;
+	for (int i = 0; i < get_json_array_len(sprite_file); i++) {
+		sprites.push_back(sprite_from_json(sprite_file, i, animations));
+	}
+	return 0;
 }
 
 
-//todo find a way to get rid of this
-int aniarr[][2] = {{2, 0}, {2, 1}, {2, 2}, {2, 3}, {END_OF_ANI, 0}};
 
 /*
  * initialize_sprites initializes all used animations in the animations vector.
@@ -72,7 +63,11 @@ int aniarr[][2] = {{2, 0}, {2, 1}, {2, 2}, {2, 3}, {END_OF_ANI, 0}};
  * returns 0 on success
  */
 int initialize_animations(){
-    animations.push_back(Animation(aniarr, 0));
+	//todo get rid of this
+    //animations.push_back(Animation(aniarr, 0));
+	for (int i = 0; i < get_json_array_len(ani_file); i++) {
+		animations.push_back(animation_from_json(ani_file, i));
+	}
     return 0;
 }
 
@@ -118,6 +113,7 @@ int get_sprite_index(string sprite_key) {
  */
 int initialize_board() {
     initialize_animations();
+    printf("animations have been initialized.\n");
     initialize_sprites();
     //initialize SDL and the main window
     if (SDL_Init( SDL_INIT_VIDEO ) < 0) {

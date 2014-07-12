@@ -73,11 +73,11 @@ int wait_for_frame() {
         }
 
         //timer must be re-set so we don't automatically frame every time
-        set_time();
+        //set_time();
         return time_to_wait;
     }
 
-    set_time();
+    //set_time();
     return 0;
 }
 
