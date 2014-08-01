@@ -28,6 +28,7 @@ int game_loop(){
         }
         render_all();
         set_time();
+        check_win_lose();
     }
     return 0;
 }

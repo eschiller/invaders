@@ -10,6 +10,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <stdlib.h>
+#include <time.h>
 
 #include "board.h"
 #include "sprite.h"
@@ -31,6 +33,8 @@ SDL_Renderer *g_renderer = NULL;
 //function declarations
 int ship_shoot();
 int check_all_collisions();
+int aliens_shoot();
+int check_win_lose();
 
 //data structure declarations
 static vector<Sprite> sprites;
@@ -113,7 +117,6 @@ int get_sprite_index(string sprite_key) {
  */
 int initialize_board() {
     initialize_animations();
-    printf("animations have been initialized.\n");
     initialize_sprites();
     //initialize SDL and the main window
     if (SDL_Init( SDL_INIT_VIDEO ) < 0) {
@@ -138,6 +141,8 @@ int initialize_board() {
     if (load_sprite_textures() == -1) {
         return -1;
     }
+
+    srand(time(NULL));
 
     return 0;
 }
@@ -250,6 +255,7 @@ int update_sprites(){
             }
         }
     }
+    aliens_shoot();
     move_all_sprites();
     check_all_collisions();
     return 0;
@@ -299,7 +305,7 @@ int check_all_collisions() {
         if ((sprites[i].get_sprite_key().find("alien") != string::npos) &&
                 sprites[i].is_enabled()) {
         	for(u_int j = 0; j < sprites.size(); j++) {
-                if ((sprites[j].get_sprite_key().find("shot") != string::npos) &&
+                if ((sprites[j].get_sprite_key().find("ship_shot") != string::npos) &&
                                 sprites[j].is_enabled()) {
                     if (check_collision(i, j)) {
                         sprites[i].disable_sprite();
@@ -310,11 +316,26 @@ int check_all_collisions() {
         }
     }
 
+	//loop to check for enabled alien shots, and to see if they have a collision with the ship
+	int ship_index = get_sprite_index("ship");
+	for(u_int i = 0; i < sprites.size(); i++) {
+	    if ((sprites[i].get_sprite_key().find("al_shot") != string::npos) && sprites[i].is_enabled()) {
+	        if (check_collision(ship_index, i)) {
+	            sprites[i].disable_sprite();
+	            sprites[ship_index].disable_sprite();
+	        }
+	    }
+	}
+
     //check if any of the shots have gone off the screen. If they have, we can
     //use them again by disabling the sprite.
 	for(u_int i = 0; i < sprites.size(); i++) {
         if ((sprites[i].get_sprite_y() == -8) && (sprites[i].is_enabled()) &&
-                (sprites[i].get_sprite_key().find("shot") != string::npos)) {
+                (sprites[i].get_sprite_key().find("ship_shot") != string::npos)) {
+            sprites[i].disable_sprite();
+        }
+        if ((sprites[i].get_sprite_y() == (WIN_HEIGHT)) && (sprites[i].is_enabled()) &&
+                (sprites[i].get_sprite_key().find("al_shot") != string::npos)) {
             sprites[i].disable_sprite();
         }
     }
@@ -331,11 +352,16 @@ int check_all_collisions() {
  * returns 0 on success, -1 if no shot was available
  */
 int ship_shoot(){
+    //don't allow shooting from a ghost-ship. It's creepy.
+    if (!sprites[get_sprite_index("ship")].is_enabled()) {
+        return -1;
+    }
+
     int shot_index = -1;
     //find shot that is not currently on screen
     for(u_int i = 0; i < sprites.size(); i++) {
         if (!sprites[i].is_enabled() &&
-                (sprites[i].get_sprite_key().find("shot") != string::npos)) {
+                (sprites[i].get_sprite_key().find("ship_shot") != string::npos)) {
             shot_index = i;
         }
     }
@@ -355,5 +381,74 @@ int ship_shoot(){
     sprites[shot_index].set_sprite_pos(shot_x, shot_y);
     sprites[shot_index].set_sprite_yvel(-20);
     sprites[shot_index].enable_sprite();
+    return 0;
+}
+
+
+/*
+ * get_free_alien_shot iterates through the sprites and returns the first
+ * alien_shot sprite that is not currently enabled.
+ */
+int get_free_alien_shot() {
+    for (u_int i = 0; i < sprites.size(); i++) {
+        if ((sprites[i].get_sprite_key().find("al_shot") != string::npos) && (!sprites[i].is_enabled())) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+/*
+ * aliens_shoot has a 1/50 chance of causing a shot to be fired by each alien.
+ * If each shot is already active, nothing will be done.
+ */
+int aliens_shoot(){
+    for (u_int i = 0; i < sprites.size(); i++) {
+        if ((sprites[i].get_sprite_key().find("alien") != string::npos) && sprites[i].is_enabled()) {
+            if ((rand() % 50) == 1) {
+                int ashot_index;
+                if ((ashot_index = get_free_alien_shot()) == -1) {
+                    //if we make it here, all alien shots are already out there
+                    return -1;
+                }
+                int new_shot_x = (sprites[i].get_sprite_x() + (sprites[i].get_sprite_width() / 2));
+                sprites[ashot_index].set_sprite_x(new_shot_x);
+                sprites[ashot_index].set_sprite_y(sprites[i].get_sprite_y() + (sprites[i].get_sprite_height() / 2));
+                sprites[ashot_index].set_sprite_yvel(15);
+                sprites[ashot_index].enable_sprite();
+            }
+        }
+    }
+    return 0;
+}
+
+
+/*
+ * check_win_lose checks for win conditions (all alien sprites are disabled),
+ * and lose conditions (ship sprite is disabled). If either is encountered, the
+ * appropriate win/lose image is displayed.
+ */
+int check_win_lose() {
+    if (!sprites[get_sprite_index("ship")].is_enabled()) {
+        int lose_index = get_sprite_index("lose");
+        sprites[lose_index].set_sprite_x((WIN_WIDTH / 2) - (sprites[lose_index].get_sprite_width() / 2));
+        sprites[lose_index].set_sprite_y((WIN_HEIGHT / 2) - (sprites[lose_index].get_sprite_height() / 2));
+        sprites[lose_index].enable_sprite();
+        return LOSE;
+    } else {
+        for (u_int i = 0; i < sprites.size(); i++) {
+            if ((sprites[i].get_sprite_key().find("alien") != string::npos) && sprites[i].is_enabled()) {
+                return 0;
+            }
+        }
+
+        //if we've gotten this far, none of our aliens are enabled.
+        int win_index = get_sprite_index("win");
+        sprites[win_index].set_sprite_x((WIN_WIDTH / 2) - (sprites[win_index].get_sprite_width() / 2));
+        sprites[win_index].set_sprite_y((WIN_HEIGHT / 2) - (sprites[win_index].get_sprite_height() / 2));
+        sprites[win_index].enable_sprite();
+        return WIN;
+    }
     return 0;
 }

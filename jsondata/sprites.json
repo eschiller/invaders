@@ -31,7 +31,7 @@
   },
 
   {
-    "key" : "shot_1",
+    "key" : "ship_shot_1",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -41,7 +41,7 @@
   },
 
   {
-    "key" : "shot_2",
+    "key" : "ship_shot_2",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -51,7 +51,7 @@
   },
 
   {
-    "key" : "shot_3",
+    "key" : "ship_shot_3",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -61,7 +61,7 @@
   },
 
   {
-    "key" : "shot_4",
+    "key" : "ship_shot_4",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -71,7 +71,7 @@
   },
 
   {
-    "key" : "shot_5",
+    "key" : "ship_shot_5",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -81,7 +81,7 @@
   },
 
   {
-    "key" : "shot_6",
+    "key" : "ship_shot_6",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -91,7 +91,7 @@
   },
 
   {
-    "key" : "shot_7",
+    "key" : "ship_shot_7",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -101,7 +101,7 @@
   },
 
   {
-    "key" : "shot_8",
+    "key" : "ship_shot_8",
     "img_path" : "images/shot.png",
     "width" : 4,
     "height" : 8,
@@ -148,5 +148,65 @@
     "xpos" : 668,
     "ypos" : 80,
     "render" : 1
+  },
+
+  {
+    "key" : "al_shot_1",
+    "img_path" : "images/alien_shot.png",
+    "width" : 8,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "al_shot_2",
+    "img_path" : "images/alien_shot.png",
+    "width" : 8,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+    {
+    "key" : "al_shot_3",
+    "img_path" : "images/alien_shot.png",
+    "width" : 8,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "al_shot_4",
+    "img_path" : "images/alien_shot.png",
+    "width" : 8,
+    "height" : 8,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "win",
+    "img_path" : "images/win.png",
+    "width" : 344,
+    "height" : 56,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
+  },
+
+  {
+    "key" : "lose",
+    "img_path" : "images/lose.png",
+    "width" : 408,
+    "height" : 56,
+    "xpos" : 0,
+    "ypos" : 0,
+    "render" : 0
   }
 ]
